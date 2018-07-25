@@ -1,0 +1,25 @@
+{
+  "name": "demomeanapp",
+  "version": "1.0.0",
+  "description": "\"\"\u001b[DFirst demo Mean App",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --timeout 10000"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.6.0",
+    "body-parser": "^1.18.2",
+    "chai": "^4.1.2",
+    "chai-http": "^4.0.0",
+    "cors": "^2.8.4",
+    "events": "^2.0.0",
+    "express": "^4.16.3",
+    "guid": "0.0.12",
+    "mocha": "^5.2.0",
+    "mongojs": "^2.5.0",
+    "npm": "^6.0.0",
+    "require": "^2.4.20"
+  }
+}
