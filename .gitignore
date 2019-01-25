@@ -47,6 +47,7 @@ Ankh.NoLoad
 .vs
 
 #Other
+node_modules
 *.orig
 .svn
 packages/
@@ -88,3 +89,4 @@ SqlScripts/TaxManagement/ScriptList.txt
 
 /allcmd.txt
 /sqldeployrm.cmd
+package-lock.json

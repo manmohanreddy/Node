@@ -13,7 +13,7 @@ router.put("/UpdateUser", authenticate.IsAuthenticated(), authenticate.ensureRol
 
 router.post("/DeleteUser", authenticate.IsAuthenticated(), authenticate.ensureRole([1]), bo.userbo.DeleteUser);
 
-router.post("/CreateUser", authenticate.IsAuthenticated(), authenticate.ensureRole([1]), bo.userbo.CreateUser);
+router.post("/CreateUser", bo.userbo.CreateUser);
 
 router.get("/Employee/GetByname", authenticate.IsAuthenticated(), authenticate.ensureRole([1, 2]), bo.employeebo.getEmployeeByName);
 
