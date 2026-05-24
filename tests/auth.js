@@ -1,41 +1,34 @@
+require('./common');
+
 describe('RUNNING AUTHENTICATION TESTS', () => {
 
-    it('TEST LOGIN METHOD - It tests the login API positive scenario', (done) => {
-
-        var input = {
+    it('TEST LOGIN METHOD - It tests the login API positive scenario', async () => {
+        const input = {
             name: "Uday",
             password: "welcome"
-        }
+        };
 
-        chai.request(serverurl)
-            .post('/login')
-            .send(input)
-            .end((err, res) => {
-                if (err) return done();
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                res.body.should.have.property('token');
-                res.body.should.have.property('name').eq('Uday');
-                return done();
-            });
+        const res = await axios.post(`${serverurl}/login`, input);
+        expect(res.status).to.equal(200);
+        expect(res.data).to.be.an('object');
+        expect(res.data).to.have.property('token');
+        expect(res.data).to.have.property('name').that.equals('Uday');
     });
 
-    it('TEST LOGIN METHOD - It tests the login API negative scenario', (done) => {
-        var input = {
+    it('TEST LOGIN METHOD - It tests the login API negative scenario', async () => {
+        const input = {
             name: "fake",
             password: "welcomefake"
-        }
+        };
 
-        chai.request(serverurl)
-            .post('/login')
-            .send(input)
-            .end((err, res) => {
-                if (err) return done();
-                res.should.have.status(401);
-                res.body.should.be.a('object');
-                res.body.should.have.property('Error');
-                res.body.should.have.property('Message').eq('Invalid user');
-                return done();
-            });
+        try {
+            await axios.post(`${serverurl}/login`, input);
+            throw new Error('Expected request to fail');
+        } catch (err) {
+            if (err.message === 'Expected request to fail') throw err;
+            expect(err.response.status).to.equal(401);
+            expect(err.response.data).to.be.an('object');
+            expect(err.response.data).to.have.property('error');
+        }
     });
 });

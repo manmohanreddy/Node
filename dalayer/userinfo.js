@@ -1,6 +1,6 @@
-
-var dbutil = require('../dalayer/dbutil')
-var sessionservice = require('../services/sessionservice')
+const dbutil = require('../dalayer/dbutil');
+const sessionservice = require('../services/sessionservice');
+const url = require('url');
 
 var async = require("async");
 
@@ -23,81 +23,149 @@ eventEmitter.removeListener("connection", sendEmail);
 eventEmitter.emit('connection');
 
 
-function login(req, callback) {
-    var dbobj = dbutil.connect();
-    var buff = new Buffer(req.password);
-    var pwd = buff.toString('base64');
-    dbobj.USERS_INFO.findOne({ name: req.name, password: pwd, IsActive: true }, { Id: 1, name: 1, RoleId: 1 }, callback);
+async function login(req) {
+    const dbobj = dbutil.connect();
+    const buff = Buffer.from(req.password);
+    const pwd = buff.toString('base64');
+
+    return new Promise((resolve, reject) => {
+        dbobj.USERS_INFO.findOne(
+            { name: req.name, password: pwd, IsActive: true },
+            { Id: 1, name: 1, RoleId: 1 },
+            (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            }
+        );
+    });
 }
 
-function getName(req, callback) {
-    //callback(null, { "Message": "My name is :" + req.name });
+async function getName(req) {
+    const dbobj = dbutil.connect();
 
-    var dbobj = dbutil.connect();
-    dbobj.USERS_INFO.find({ IsActive: true }, { _id: 0, IsActive: 0 }, callback);
+    return new Promise((resolve, reject) => {
+        dbobj.USERS_INFO.find(
+            { IsActive: true },
+            { _id: 0, IsActive: 0 },
+            (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result || []);
+                }
+            }
+        );
+    });
 }
 
-function getLocation(req, callback) {
-    //callback(null, { "Message": "My name is :" + req.name });
-    var dbobj = dbutil.connect();
-    dbobj.USERS_INFO.find({ IsActive: true },
-        {
-            "location": 1.0
-        }, callback);
+async function getLocation(req) {
+    const dbobj = dbutil.connect();
+
+    return new Promise((resolve, reject) => {
+        dbobj.USERS_INFO.find(
+            { IsActive: true },
+            { "location": 1.0 },
+            (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result || []);
+                }
+            }
+        );
+    });
 }
 
-function CreateUser(req, callback) {
-    var dbobj = dbutil.connect();
-    var buff = new Buffer('welcome');
-    var pwd = buff.toString('base64');
-//synchronous Programming
-    new Promise(function (resolve, reject) {
-        dbutil.getNextSequence('USERS_INFO', function (err, result) {
-            if (err == null) {
+async function getUserByName(req) {
+    const urlParts = url.parse(req.url, true);
+    const params = urlParts.query;
+
+    return new Promise((resolve, reject) => {
+        const dbobj = dbutil.connect();
+        dbobj.USER_INFO.find({ UserName: params.name }, (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(result && result.length > 0 ? result[0] : null);
+            }
+        });
+    });
+}
+
+async function CreateUser(req) {
+    const dbobj = dbutil.connect();
+    const buff = Buffer.from('welcome');
+    const pwd = buff.toString('base64');
+
+    return new Promise((resolve, reject) => {
+        dbutil.getNextSequence('USERS_INFO', (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
                 dbobj.USERS_INFO.insert({
                     Id: result.seq,
                     name: req.name,
                     password: pwd,
                     location: req.location,
                     RoleId: req.roleid,
-                    IsActive: true
-                },
-                    //callback
-                    resolve(result)
-                )
-            } else {
-                //callback(err, null);
-                reject(err);
+                    IsActive: true,
+                    CreatedDate: new Date()
+                }, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
             }
         });
-    }).then(function (rec) {
-        callback(null, rec);
-    }).catch(function (err) {
-        callback(err, null);
-    })
+    });
 }
 
-function UpdateUser(req, callback) {
-    var dbobj = dbutil.connect();
-    dbobj.USERS_INFO.update({
-        Id: req.Id
-    }, {
+async function UpdateUser(req) {
+    const dbobj = dbutil.connect();
+
+    return new Promise((resolve, reject) => {
+        dbobj.USERS_INFO.update({
+            Id: req.Id
+        }, {
             $set: {
                 name: req.name,
-                location: req.location
+                location: req.location,
+                UpdatedDate: new Date()
             }
-        }, callback)
+        }, (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(result);
+            }
+        });
+    });
 }
 
-function DeleteUser(req, callback) {
-    var dbobj = dbutil.connect();
-    dbobj.USERS_INFO.update({
-        Id: { $in: req.Ids }
-    }, {
+async function DeleteUser(req) {
+    const dbobj = dbutil.connect();
+
+    return new Promise((resolve, reject) => {
+        dbobj.USERS_INFO.update({
+            Id: { $in: req.Ids }
+        }, {
             $set: {
-                IsActive: false
+                IsActive: false,
+                DeletedDate: new Date()
             }
-        }, callback)
+        }, (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(result);
+            }
+        });
+    });
 }
 
 //async calls
@@ -115,7 +183,7 @@ function bulkupdate(req, callback) {
 module.exports.login = login;
 module.exports.getName = getName;
 module.exports.getLocation = getLocation;
-
+module.exports.getUserByName = getUserByName;
 module.exports.CreateUser = CreateUser;
 module.exports.DeleteUser = DeleteUser;
 module.exports.UpdateUser = UpdateUser;

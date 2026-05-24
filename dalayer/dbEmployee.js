@@ -1,105 +1,137 @@
+const dbutil = require('./dbutil');
+const url = require('url');
+const logger = require('../services/logger');
 
-var dbutil = require('../dalayer/dbutil')
-var sessionservice = require('../services/sessionservice')
-var url = require("url");
+async function getEmployeeById(req) {
+  logger.debug('getEmployeeById called', { url: req.url });
 
-function getEmployyeByID(req, callback) {
-    //callback(null, { "Message": "My name is :" + req.name });
-    var urlParts = url.parse(req.url, true);
-    var params = urlParts.query;
+  const urlParts = url.parse(req.url, true);
+  const params = urlParts.query;
+  const employeeId = Number(params.Id);
 
-    var dbobj = dbutil.connect();
-    dbobj.EMPLOYEE_INFO.find({
-        "EmployeeId": Number(params.Id)
-    }, callback);
+  return new Promise((resolve, reject) => {
+    const dbobj = dbutil.connect();
+    dbobj.EMPLOYEE_INFO.find({ EmployeeId: employeeId }, (err, result) => {
+      if (err) {
+        logger.error('getEmployeeById failed', { employeeId, error: err.message });
+        reject(err);
+      } else {
+        logger.info('Employee retrieved', { employeeId });
+        resolve(result && result.length > 0 ? result[0] : null);
+      }
+    });
+  });
 }
 
-function getAllEmployees(req, callback) {
-  
-    var dbobj = dbutil.connect();
-    dbobj.EMPLOYEE_INFO.find({IsActive: true }, callback);
+async function getAllEmployees(req) {
+  logger.debug('getAllEmployees called');
+
+  return new Promise((resolve, reject) => {
+    const dbobj = dbutil.connect();
+    dbobj.EMPLOYEE_INFO.find({ IsActive: true }, (err, result) => {
+      if (err) {
+        logger.error('getAllEmployees failed', { error: err.message });
+        reject(err);
+      } else {
+        logger.info('All employees retrieved', { count: result ? result.length : 0 });
+        resolve(result || []);
+      }
+    });
+  });
 }
 
-function getByEmployeeName(req, callback) {
-    //callback(null, { "Message": "My name is :" + req.name });
-    var dbobj = dbutil.connect();
-    var urlParts = url.parse(req.url, true);
-    var params = urlParts.query;
-    dbobj.EMPLOYEE_INFO.find(
-        {
-            "EmployeeName": params.name
-        }, callback);
+async function getByEmployeeName(req) {
+  logger.debug('getByEmployeeName called', { url: req.url });
+
+  const urlParts = url.parse(req.url, true);
+  const params = urlParts.query;
+
+  return new Promise((resolve, reject) => {
+    const dbobj = dbutil.connect();
+    dbobj.EMPLOYEE_INFO.find({ EmployeeName: params.name }, (err, result) => {
+      if (err) {
+        logger.error('getByEmployeeName failed', { name: params.name, error: err.message });
+        reject(err);
+      } else {
+        logger.info('Employees retrieved by name', { name: params.name, count: result ? result.length : 0 });
+        resolve(result || []);
+      }
+    });
+  });
 }
 
-function CreateEmployee(req, res, callback) {
-    var dbobj = dbutil.connect();
-    //synchronous Programming
-    new Promise(function (resolve, reject) {
-        var record = dbobj.EMPLOYEE_INFO.find(
-            {
-                "EmployeeName": req.name
-            });
-        if (record && record.EmployeeId&& record.EmployeeId > 0) {
-            return res.status(409).json({ err: true, message: "Record already exists with the same name" });
-        }
-        dbutil.getNextSequence('EMPLOYEE_INFO', function (err, result) {
-            if (err == null) {
-                dbobj.EMPLOYEE_INFO.insert({
-                    EmployeeId: result.seq,
-                    EmployeeName: req.name,
-                    Job: req.job,
-                    Location: req.location,
-                    Status: req.status,
-                    Salary: req.salary,
-                    hours: req.hours,
-                    RoleId: req.roleid,
-                    IsActive: true
-                },
-                    //callback
-                    resolve(result)
-                )
-            } else {
-                //callback(err, null);
-                reject(err);
-            }
+async function CreateEmployee(req) {
+  logger.debug('CreateEmployee called', { name: req.name });
+
+  const dbobj = dbutil.connect();
+
+  return new Promise((resolve, reject) => {
+    dbobj.EMPLOYEE_INFO.find({ EmployeeName: req.name }, (err, result) => {
+      if (err) {
+        logger.error('CreateEmployee check failed', { name: req.name, error: err.message });
+        reject(err);
+      } else if (result && result.length > 0) {
+        logger.warn('CreateEmployee attempted on existing employee', { name: req.name });
+        reject(new Error(`Employee with name ${req.name} already exists`));
+      } else {
+        dbobj.EMPLOYEE_INFO.insert(req, (err, result) => {
+          if (err) {
+            logger.error('CreateEmployee insert failed', { name: req.name, error: err.message });
+            reject(err);
+          } else {
+            logger.info('Employee created', { name: req.name });
+            resolve(result);
+          }
         });
-    }).then(function (result) {
-        return res.status(201).json({ err: false, message: "Employee Created Successfully", output: { EmployeeId: result.seq } });
-        //callback(null, rec);
-    }).catch(function (err) {
-        return res.status(500).json({ err: true, message: err.message });
-        //callback(err, null);
-    })
+      }
+    });
+  });
 }
 
-function UpdateEmployee(req, callback) {
-    var dbobj = dbutil.connect();
-    dbobj.EMPLOYEE_INFO.update({
-        EmployeeId: Number(req.id)
-    }, {
-            $set: {
-                Salary: req.salary,
-                hours: req.hours
-            }
-        }, callback)
+async function UpdateEmployee(req) {
+  logger.debug('UpdateEmployee called', { employeeId: req.EmployeeId });
+
+  return new Promise((resolve, reject) => {
+    const dbobj = dbutil.connect();
+    dbobj.EMPLOYEE_INFO.update(
+      { EmployeeId: Number(req.EmployeeId) },
+      { $set: req },
+      (err, result) => {
+        if (err) {
+          logger.error('UpdateEmployee failed', { employeeId: req.EmployeeId, error: err.message });
+          reject(err);
+        } else {
+          logger.info('Employee updated', { employeeId: req.EmployeeId });
+          resolve(result);
+        }
+      }
+    );
+  });
 }
 
-function DeleteEmployee(req, callback) {
-    var dbobj = dbutil.connect();
-    dbobj.EMPLOYEE_INFO.update({
-        EmployeeId: Number(req.id)
-    }, {
-            $set: {
-                IsActive: false
-            }
-        }, callback)
+async function DeleteEmployee(req) {
+  logger.debug('DeleteEmployee called', { employeeId: req.EmployeeId });
+
+  return new Promise((resolve, reject) => {
+    const dbobj = dbutil.connect();
+    dbobj.EMPLOYEE_INFO.remove(
+      { EmployeeId: Number(req.EmployeeId) },
+      (err, result) => {
+        if (err) {
+          logger.error('DeleteEmployee failed', { employeeId: req.EmployeeId, error: err.message });
+          reject(err);
+        } else {
+          logger.info('Employee deleted', { employeeId: req.EmployeeId });
+          resolve(result);
+        }
+      }
+    );
+  });
 }
 
-
-module.exports.getEmployyeByID = getEmployyeByID;
-module.exports.getByEmployeeName = getByEmployeeName;
-
-module.exports.CreateEmployee = CreateEmployee;
-module.exports.DeleteEmployee = DeleteEmployee;
-module.exports.UpdateEmployee = UpdateEmployee;
+module.exports.getEmployeeById = getEmployeeById;
 module.exports.getAllEmployees = getAllEmployees;
+module.exports.getByEmployeeName = getByEmployeeName;
+module.exports.CreateEmployee = CreateEmployee;
+module.exports.UpdateEmployee = UpdateEmployee;
+module.exports.DeleteEmployee = DeleteEmployee;

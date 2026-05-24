@@ -3,29 +3,33 @@ var router = express.Router();
 var bo = require('../bolayer');
 var authenticate = require('../utils/authentication')
 
-router.post("/login", bo.userbo.login);
+const asyncHandler = (fn) => (req, res, next) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+};
 
-router.get("/GetName", authenticate.IsAuthenticated(), authenticate.ensureRole([1, 2]), bo.userbo.getName);
+router.post("/login", asyncHandler(bo.userbo.login));
 
-router.get("/GetLocation", authenticate.IsAuthenticated(), authenticate.ensureRole([1, 2]), bo.userbo.getLocation);
+router.get("/GetName", authenticate.IsAuthenticated(), authenticate.ensureRole([1, 2]), asyncHandler(bo.userbo.getName));
 
-router.put("/UpdateUser", authenticate.IsAuthenticated(), authenticate.ensureRole([1]), bo.userbo.UpdateUser);
+router.get("/GetLocation", authenticate.IsAuthenticated(), authenticate.ensureRole([1, 2]), asyncHandler(bo.userbo.getLocation));
 
-router.post("/DeleteUser", authenticate.IsAuthenticated(), authenticate.ensureRole([1]), bo.userbo.DeleteUser);
+router.put("/UpdateUser", authenticate.IsAuthenticated(), authenticate.ensureRole([1]), asyncHandler(bo.userbo.UpdateUser));
 
-router.post("/CreateUser", bo.userbo.CreateUser);
+router.post("/DeleteUser", authenticate.IsAuthenticated(), authenticate.ensureRole([1]), asyncHandler(bo.userbo.DeleteUser));
 
-router.get("/Employee/GetByname", authenticate.IsAuthenticated(), authenticate.ensureRole([1, 2]), bo.employeebo.getEmployeeByName);
+router.post("/CreateUser", asyncHandler(bo.userbo.CreateUser));
 
-router.get("/Employee/GetById", bo.employeebo.getEmployeeById);
+router.get("/Employee/GetByname", authenticate.IsAuthenticated(), authenticate.ensureRole([1, 2]), asyncHandler(bo.employeebo.getEmployeeByName));
 
-router.get("/Employee/GetAllEmployees", bo.employeebo.getAllEmployees);
+router.get("/Employee/GetById", asyncHandler(bo.employeebo.getEmployeeById));
 
-router.put("/Employee/UpdateEmployee", bo.employeebo.UpdateEmployee);
+router.get("/Employee/GetAllEmployees", asyncHandler(bo.employeebo.getAllEmployees));
 
-router.put("/Employee/DeleteEmployee", bo.employeebo.DeleteEmployee);
+router.put("/Employee/UpdateEmployee", asyncHandler(bo.employeebo.UpdateEmployee));
 
-router.post("/Employee/InsertEmployee", bo.employeebo.CreateEmployee);
+router.put("/Employee/DeleteEmployee", asyncHandler(bo.employeebo.DeleteEmployee));
+
+router.post("/Employee/InsertEmployee", asyncHandler(bo.employeebo.CreateEmployee));
 
 module.exports = router;
 

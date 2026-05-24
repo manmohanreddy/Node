@@ -1,3 +1,14 @@
+const config = require('./config');
+
 module.exports = {
-    'CONNECTION_STRING': 'mongodb://localhost:27017/demodb'
-}
+  mongodb: {
+    uri: config.mongodb.uri,
+  },
+  server: {
+    port: config.server.port,
+    env: config.server.env,
+  },
+  logging: {
+    level: config.logging.level,
+  },
+};
