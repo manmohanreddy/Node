@@ -21,15 +21,15 @@ router.post("/CreateUser", asyncHandler(bo.userbo.CreateUser));
 
 router.get("/Employee/GetByname", authenticate.IsAuthenticated(), authenticate.ensureRole([1, 2]), asyncHandler(bo.employeebo.getEmployeeByName));
 
-router.get("/Employee/GetById", asyncHandler(bo.employeebo.getEmployeeById));
+router.get("/Employee/GetById", authenticate.IsAuthenticated(), authenticate.ensureRole([1, 2]), asyncHandler(bo.employeebo.getEmployeeById));
 
-router.get("/Employee/GetAllEmployees", asyncHandler(bo.employeebo.getAllEmployees));
+router.get("/Employee/GetAllEmployees", authenticate.IsAuthenticated(), authenticate.ensureRole([1, 2]), asyncHandler(bo.employeebo.getAllEmployees));
 
-router.put("/Employee/UpdateEmployee", asyncHandler(bo.employeebo.UpdateEmployee));
+router.put("/Employee/UpdateEmployee", authenticate.IsAuthenticated(), authenticate.ensureRole([1]), asyncHandler(bo.employeebo.UpdateEmployee));
 
-router.put("/Employee/DeleteEmployee", asyncHandler(bo.employeebo.DeleteEmployee));
+router.put("/Employee/DeleteEmployee", authenticate.IsAuthenticated(), authenticate.ensureRole([1]), asyncHandler(bo.employeebo.DeleteEmployee));
 
-router.post("/Employee/InsertEmployee", asyncHandler(bo.employeebo.CreateEmployee));
+router.post("/Employee/InsertEmployee", authenticate.IsAuthenticated(), authenticate.ensureRole([1]), asyncHandler(bo.employeebo.CreateEmployee));
 
 module.exports = router;
 

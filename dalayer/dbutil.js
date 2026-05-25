@@ -15,7 +15,22 @@ function connect() {
   return mongojs(config.mongodb.uri);
 }
 
+function getNextSequence(sequenceName, callback) {
+  const db = connect();
+  db.counters.findAndModify(
+    { query: { _id: sequenceName }, update: { $inc: { seq: 1 } }, new: true, upsert: true },
+    (err, result) => {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, result);
+      }
+    }
+  );
+}
+
 module.exports = {
   connect,
   promisifyDbOperation,
+  getNextSequence,
 };

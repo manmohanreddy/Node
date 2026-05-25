@@ -25,12 +25,19 @@ eventEmitter.emit('connection');
 
 async function login(req) {
     const dbobj = dbutil.connect();
-    const buff = Buffer.from(req.password);
+    const password = req.Password || req.password;
+    const username = req.UserName || req.name;
+
+    if (!password) {
+        throw new Error('Password is required');
+    }
+
+    const buff = Buffer.from(password);
     const pwd = buff.toString('base64');
 
     return new Promise((resolve, reject) => {
         dbobj.USERS_INFO.findOne(
-            { name: req.name, password: pwd, IsActive: true },
+            { name: username, password: pwd, IsActive: true },
             { Id: 1, name: 1, RoleId: 1 },
             (err, result) => {
                 if (err) {
@@ -97,7 +104,7 @@ async function getUserByName(req) {
 
 async function CreateUser(req) {
     const dbobj = dbutil.connect();
-    const buff = Buffer.from('welcome');
+    const buff = Buffer.from(req.Password || 'welcome');
     const pwd = buff.toString('base64');
 
     return new Promise((resolve, reject) => {
@@ -107,10 +114,10 @@ async function CreateUser(req) {
             } else {
                 dbobj.USERS_INFO.insert({
                     Id: result.seq,
-                    name: req.name,
+                    name: req.UserName,
                     password: pwd,
-                    location: req.location,
-                    RoleId: req.roleid,
+                    location: req.Location || '',
+                    RoleId: req.RoleId || 2,
                     IsActive: true,
                     CreatedDate: new Date()
                 }, (err, result) => {
