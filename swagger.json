@@ -234,6 +234,12 @@
       "get": {
         "summary": "Get all active employees",
         "tags": ["Employees"],
+        "security": [
+          {
+            "tokenAuth": [],
+            "roleIdAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "List of employees",
@@ -255,6 +261,12 @@
       "get": {
         "summary": "Get employee by ID",
         "tags": ["Employees"],
+        "security": [
+          {
+            "tokenAuth": [],
+            "roleIdAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "Id",
@@ -331,6 +343,12 @@
       "post": {
         "summary": "Create a new employee",
         "tags": ["Employees"],
+        "security": [
+          {
+            "tokenAuth": [],
+            "roleIdAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -365,6 +383,12 @@
       "put": {
         "summary": "Update an employee",
         "tags": ["Employees"],
+        "security": [
+          {
+            "tokenAuth": [],
+            "roleIdAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -392,6 +416,12 @@
       "put": {
         "summary": "Delete an employee",
         "tags": ["Employees"],
+        "security": [
+          {
+            "tokenAuth": [],
+            "roleIdAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -420,15 +450,15 @@
     "schemas": {
       "LoginRequest": {
         "type": "object",
-        "required": ["name", "password"],
+        "required": ["UserName", "Password"],
         "properties": {
-          "name": {
+          "UserName": {
             "type": "string",
-            "example": "Uday"
+            "example": "johndoe"
           },
-          "password": {
+          "Password": {
             "type": "string",
-            "example": "welcome"
+            "example": "secure123"
           }
         }
       },
@@ -528,11 +558,25 @@
           "EmployeeName": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 255
+            "maxLength": 255,
+            "example": "Jane Smith"
           },
           "EmployeeId": {
             "type": "number",
-            "example": 101
+            "example": 102
+          },
+          "Department": {
+            "type": "string",
+            "example": "Engineering"
+          },
+          "Email": {
+            "type": "string",
+            "format": "email",
+            "example": "jane.smith@company.com"
+          },
+          "Phone": {
+            "type": "string",
+            "example": "+1-555-0123"
           },
           "IsActive": {
             "type": "boolean",
@@ -545,13 +589,27 @@
         "required": ["EmployeeId"],
         "properties": {
           "EmployeeId": {
-            "type": "number"
+            "type": "number",
+            "example": 101
           },
           "EmployeeName": {
+            "type": "string",
+            "example": "John Doe - Senior Developer"
+          },
+          "Department": {
+            "type": "string",
+            "example": "Engineering"
+          },
+          "Email": {
+            "type": "string",
+            "format": "email"
+          },
+          "Phone": {
             "type": "string"
           },
           "IsActive": {
-            "type": "boolean"
+            "type": "boolean",
+            "example": true
           }
         }
       },
@@ -576,8 +634,26 @@
           "EmployeeName": {
             "type": "string"
           },
+          "Department": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string",
+            "format": "email"
+          },
+          "Phone": {
+            "type": "string"
+          },
           "IsActive": {
             "type": "boolean"
+          },
+          "CreatedDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "UpdatedDate": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -603,7 +679,14 @@
       "tokenAuth": {
         "type": "apiKey",
         "in": "header",
-        "name": "token"
+        "name": "token",
+        "description": "Authentication token received from login endpoint"
+      },
+      "roleIdAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "roleid",
+        "description": "User role ID (1=Admin, 2=User)"
       }
     }
   }
